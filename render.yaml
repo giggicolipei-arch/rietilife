@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: rietilife
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 1 -b 0.0.0.0:$PORT app:app
+    healthCheckPath: /admin/login
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DB_PATH
+        value: /tmp/tracker.db
+      - key: TRUST_PROXY
+        value: "1"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: APP_TZ
+        value: Europe/Rome
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
