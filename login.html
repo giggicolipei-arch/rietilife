@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Accedi · Link Tracker{% endblock %}
+{% block content %}
+<div class="login">
+  <div class="card">
+    <h1>🔗 Link Tracker</h1>
+    <form method="post" action="{{ url_for('login') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Password
+        <input type="password" name="password" required autofocus autocomplete="current-password">
+      </label>
+      <button class="primary" style="width:100%">Accedi</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

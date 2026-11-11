@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ link.title }} · Link Tracker{% endblock %}
+{% block content %}
+{% macro breakdown(title, rows) %}
+<section class="card">
+  <h3>{{ title }}</h3>
+  {% if rows %}
+  <ul class="bd">
+    {% for r in rows %}
+    <li><span class="lbl" title="{{ r.label }}">{{ r.label }}</span>
+        <span class="bar"><i style="width: {{ r.pct }}%"></i></span><b>{{ r.n }}</b></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted small">Ancora nessun dato.</p>{% endif %}
+</section>
+{% endmacro %}
+
+<p class="small"><a href="{{ url_for('dashboard') }}">← Tutti i link</a></p>
+<h1>{{ link.title }}
+  <span class="badge {{ 'on' if link.active else 'off' }}" style="vertical-align:middle">{{ 'attivo' if link.active else 'disattivato' }}</span>
+</h1>
+
+<section class="card">
+  <div class="shortline">
+    <code>{{ short_url }}</code>
+    <button class="small" data-copy="{{ short_url }}">Copia</button>
+  </div>
+  <p class="small muted" style="margin:10px 0 0;word-break:break-all">Destinazione: {{ target }}</p>
+  <div class="actions" style="margin-top:12px">
+    <form method="post" action="{{ url_for('toggle_link', link_id=link.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="back" value="{{ url_for('link_detail', link_id=link.id) }}">
+      <button class="small">{{ 'Disattiva' if link.active else 'Riattiva' }}</button>
+    </form>
+    <a class="btn small" href="{{ url_for('export_csv', link_id=link.id) }}">Esporta CSV</a>
+    <form method="post" action="{{ url_for('delete_link', link_id=link.id) }}"
+          onsubmit="return confirm('Eliminare il link e tutte le sue statistiche?')">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="small danger">Elimina</button>
+    </form>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><b>{{ stats.total }}</b><span>Clic totali</span></div>
+  <div class="stat"><b>{{ stats.today }}</b><span>Oggi</span></div>
+  <div class="stat"><b>{{ stats.last7 }}</b><span>Ultimi 7 giorni</span></div>
+  <div class="stat"><b>{{ stats.last30 }}</b><span>Ultimi 30 giorni</span></div>
+</div>
+
+<section class="card">
+  <h3>Clic al giorno (ultimi 30 giorni)</h3>
+  <div class="chart">
+    {% for b in bars %}
+    <div class="col" title="{{ b.day }}: {{ b.n }} clic"><span style="height: {{ b.pct }}%"></span></div>
+    {% endfor %}
+  </div>
+  <div class="axis"><span>{{ bars[0].day }}</span><span>{{ bars[-1].day }}</span></div>
+</section>
+
+<div class="grid3">
+  {{ breakdown('Provenienza', referrers) }}
+  {{ breakdown('Dispositivi', devices) }}
+  {{ breakdown('Browser', browsers) }}
+</div>
+<p class="small muted">I clic di bot, anteprime dei social e richieste di prefetch non vengono conteggiati. Nessun indirizzo IP viene salvato.</p>
+{% endblock %}

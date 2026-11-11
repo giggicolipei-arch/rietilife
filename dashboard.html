@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}I tuoi link · Link Tracker{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Nuovo link</h2>
+  <form method="post" action="{{ url_for('create_link') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>URL di destinazione
+      <input type="text" name="url" required placeholder="https://esempio.com/pagina" autocomplete="off">
+    </label>
+    <div class="row">
+      <label>Codice personalizzato (opzionale)
+        <input type="text" name="code" maxlength="40" pattern="[A-Za-z0-9_\-]{3,40}" placeholder="es. promo-natale" autocomplete="off">
+      </label>
+      <label>Titolo (opzionale)
+        <input type="text" name="title" maxlength="120" placeholder="es. Newsletter di novembre" autocomplete="off">
+      </label>
+    </div>
+    <details>
+      <summary>Parametri UTM (per Google Analytics)</summary>
+      <div class="row">
+        <label>utm_source<input type="text" name="utm_source" maxlength="100" placeholder="newsletter"></label>
+        <label>utm_medium<input type="text" name="utm_medium" maxlength="100" placeholder="email"></label>
+        <label>utm_campaign<input type="text" name="utm_campaign" maxlength="100" placeholder="novembre-2026"></label>
+      </div>
+    </details>
+    <button class="primary">Crea link</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>I tuoi link ({{ links|length }})</h2>
+  {% if links %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Link</th><th>Destinazione</th><th class="num">Clic</th><th class="num">7 giorni</th><th>Stato</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for l in links %}
+        {% set short = url_for('go', code=l.code, _external=True) %}
+        <tr>
+          <td>
+            <a href="{{ url_for('link_detail', link_id=l.id) }}"><strong>{{ l.title }}</strong></a><br>
+            <code>/{{ l.code }}</code>
+            <button class="small" data-copy="{{ short }}">Copia</button>
+          </td>
+          <td><span class="dest muted" title="{{ l.url }}">{{ l.url }}</span></td>
+          <td class="num"><strong>{{ l.total }}</strong></td>
+          <td class="num">{{ l.last7 }}</td>
+          <td><span class="badge {{ 'on' if l.active else 'off' }}">{{ 'attivo' if l.active else 'disattivato' }}</span></td>
+          <td>
+            <div class="actions">
+              <form method="post" action="{{ url_for('toggle_link', link_id=l.id) }}">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button class="small">{{ 'Disattiva' if l.active else 'Riattiva' }}</button>
+              </form>
+              <form method="post" action="{{ url_for('delete_link', link_id=l.id) }}"
+                    onsubmit="return confirm('Eliminare il link e tutte le sue statistiche?')">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button class="small danger">Elimina</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="muted">Nessun link ancora. Creane uno qui sopra.</p>
+  {% endif %}
+</section>
+{% endblock %}

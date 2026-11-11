@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{% block title %}Link Tracker{% endblock %}</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f24;--muted:#667085;--line:#e4e7ec;--accent:#2563eb;--danger:#dc2626;--ok:#16a34a;--bar:#bfd3fb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--text:#e8eaed;--muted:#98a2b3;--line:#2a3039;--accent:#6ea0ff;--danger:#f87171;--ok:#4ade80;--bar:#2b3f66}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{background:var(--card);border-bottom:1px solid var(--line)}
+header .in{max-width:1000px;margin:0 auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+header strong{font-size:16px}
+main{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+h1{font-size:22px;margin:4px 0 16px}h2{font-size:17px;margin:0 0 12px}h3{font-size:15px;margin:0 0 10px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:10px}
+input[type=text],input[type=password],input:not([type]){display:block;width:100%;margin-top:4px;padding:9px 11px;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+input:focus{outline:2px solid var(--accent);outline-offset:0}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 12px}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 14px;border-radius:8px;display:inline-block}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.danger{color:var(--danger)}
+button.small{padding:4px 10px;font-size:13px}
+details{margin:4px 0 12px}summary{cursor:pointer;color:var(--accent);font-size:14px;margin-bottom:8px}
+.flash{padding:10px 14px;border-radius:8px;margin-bottom:12px;border:1px solid var(--line);background:var(--card);word-break:break-all}
+.flash.ok{border-color:var(--ok)}.flash.error{border-color:var(--danger);color:var(--danger)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}.small{font-size:13px}
+.dest{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.badge{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
+.badge.on{color:var(--ok);border-color:var(--ok)}.badge.off{color:var(--muted)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.actions form{margin:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--muted)}
+.chart{display:flex;align-items:flex-end;gap:3px;height:140px;padding-top:8px}
+.chart .col{flex:1;height:100%;display:flex;align-items:flex-end}
+.chart .col span{display:block;width:100%;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px;opacity:.9}
+.chart .col span[style*="height: 0%"]{background:var(--bar);opacity:.5}
+.axis{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.bd{list-style:none;padding:0;margin:0}
+.bd li{display:grid;grid-template-columns:minmax(70px,120px) 1fr auto;gap:10px;align-items:center;padding:5px 0;font-size:14px}
+.bd .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd .bar{height:8px;background:var(--bg);border-radius:99px;overflow:hidden}
+.bd .bar i{display:block;height:100%;background:var(--accent)}
+.shortline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;word-break:break-all}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.login{max-width:360px;margin:60px auto}
+</style>
+</head>
+<body>
+{% if session.get('auth') %}
+<header><div class="in">
+  <strong><a href="{{ url_for('dashboard') }}" style="color:inherit">🔗 Link Tracker</a></strong>
+  <form method="post" action="{{ url_for('logout') }}" style="margin:0">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="small">Esci</button>
+  </form>
+</div></header>
+{% endif %}
+<main>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+{% endwith %}
+{% block content %}{% endblock %}
+</main>
+<script>
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-copy]');
+  if (!b) return;
+  var text = b.getAttribute('data-copy'), old = b.textContent;
+  function done() { b.textContent = 'Copiato ✓'; setTimeout(function () { b.textContent = old; }, 1500); }
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done); }
+  else { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); done(); }
+});
+</script>
+</body>
+</html>
